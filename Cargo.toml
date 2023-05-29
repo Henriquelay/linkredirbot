@@ -2,6 +2,12 @@
 name = "linkredirbot"
 version = "0.1.0"
 edition = "2021"
+description = "A simple bot that replies to links with another better alternative for it"
+license = "The Unlicense"
+repository = "https://github.com/Henriquelay/linkredirbot"
+readme = "README.md"
+keywords = ["telegram", "bot", "link", "redirect", "teloxide"]
+categories = ["chatbot"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,4 +15,4 @@ edition = "2021"
 teloxide = { version = "0.12", features = ["macros"] }
 log = "0.4"
 pretty_env_logger = "0.4"
-tokio = { version =  "1.8", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.8", features = ["rt-multi-thread", "macros"] }
