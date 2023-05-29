@@ -53,7 +53,10 @@ async fn main() {
             dbg!(msg.from().map(|user| &user.username), msg.text());
             let new_links = links.iter().filter_map(|link| map_link(link));
             for new_link in new_links {
-                bot.send_message(msg.chat.id, new_link).await?;
+                bot.send_message(msg.chat.id, new_link)
+                    .allow_sending_without_reply(false)
+                    .reply_to_message_id(msg.id)
+                    .await?;
             }
         }
         Ok(())
