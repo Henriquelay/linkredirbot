@@ -23,17 +23,16 @@ fn links_from_msg(msg: &Message) -> Vec<&str> {
         .collect()
 }
 
-fn map_link(link: &str) -> Result<String, String> {
-    if link.contains("twitter.com") {
-        Ok(link.replace("twitter.com", "fxtwitter.com"))
-    } else if link.contains("igshid=") {
-        // remove everything past igshid
-        link.split("igshid=")
-            .next()
-            .map(std::string::ToString::to_string)
-            .ok_or(format!("Failed to remove igshid from {link}"))
-    } else {
-        Ok(link.to_string())
+fn map_link(link: &str) -> Option<String> {
+    match link {
+        link if link.contains("twitter.com") => Some(link.replace("twitter.com", "fxtwitter.com")),
+        link if link.contains("igshid=") => {
+            // remove everything past igshid
+            link.split("igshid=")
+                .next()
+                .map(std::string::ToString::to_string)
+        }
+        _ => None,
     }
 }
 
@@ -52,13 +51,9 @@ async fn main() {
             bot.send_message(msg.chat.id, REPLY_TEXT).await?;
         } else {
             dbg!(msg.from().map(|user| &user.username), msg.text());
-            for link in links {
-                let reply = map_link(link);
-                let reply = match reply {
-                    Ok(reply) => reply,
-                    Err(e) => format!("[DEBUG] Failed to map link: {e}"),
-                };
-                bot.send_message(msg.chat.id, reply).await?;
+            let new_links = links.iter().filter_map(|link| map_link(link));
+            for new_link in new_links {
+                bot.send_message(msg.chat.id, new_link).await?;
             }
         }
         Ok(())
