@@ -45,11 +45,7 @@ async fn main() {
 
     teloxide::repl(bot, |bot: Bot, msg: Message| async move {
         let links = links_from_msg(&msg);
-        if links.is_empty() {
-            const REPLY_TEXT: &str = "No link detected";
-
-            bot.send_message(msg.chat.id, REPLY_TEXT).await?;
-        } else {
+        if !links.is_empty() {
             dbg!(msg.from().map(|user| &user.username), msg.text());
             let new_links = links.iter().filter_map(|link| map_link(link));
             for new_link in new_links {
