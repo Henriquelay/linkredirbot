@@ -25,13 +25,17 @@ fn links_from_msg(msg: &Message) -> Vec<&str> {
 
 fn map_link(link: &str) -> Option<String> {
     match link {
-        link if link.contains("twitter.com") => Some(link.replace("twitter.com", "fxtwitter.com")),
-        link if link.contains("igshid=") => {
-            // remove everything past igshid
-            link.split("igshid=")
-                .next()
-                .map(std::string::ToString::to_string)
+        _ if link.contains("twitter.com") && !link.contains("fxtwitter") => {
+            Some(link.replace("twitter.com", "fxtwitter.com"))
         }
+        _ if link.contains("tiktok.com") && !link.contains("vxtiktok") => {
+            Some(link.replace("tiktok.com", "vxtiktok.com"))
+        }
+        _ if link.contains("instagram.com") && !link.contains("ddinstagram") => {
+            let output_link = link.replace("instagram.com", "ddinstagram.com");
+            output_link.split("igshid=").next().map(str::to_string)
+        }
+
         _ => None,
     }
 }
