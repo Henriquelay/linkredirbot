@@ -28,6 +28,9 @@ fn map_link(link: &str) -> Option<String> {
         _ if link.contains("twitter.com") && !link.contains("fxtwitter") => {
             Some(link.replace("twitter.com", "fxtwitter.com"))
         }
+        _ if link.contains("x.com") && !link.contains("fixupx") => {
+            Some(link.replace("x.com", "fixupx.com"))
+        }
         _ if link.contains("tiktok.com") && !link.contains("vxtiktok") => {
             Some(link.replace("tiktok.com", "vxtiktok.com"))
         }
