@@ -14,7 +14,8 @@ COPY . .
 RUN cargo build --release --bin linkredirbot
 
 # We do not need the Rust toolchain to run the binary!
-FROM debian:bookworm-slim AS runtime
+FROM alpine AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/linkredirbot /usr/local/bin
+
 ENTRYPOINT ["/usr/local/bin/linkredirbot"]
