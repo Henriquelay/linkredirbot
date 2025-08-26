@@ -12,7 +12,10 @@ categories = ["chatbot"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-teloxide = { version = "0.12", features = ["rustls"] }
+teloxide = { version = "0.12", features = [
+  "rustls",
+  "ctrlc_handler",
+], default-features = false }
 tokio = { version = "1.8", features = ["rt-multi-thread", "macros"] }
 futures = "0.3.28"
 url = "2.4.1"
