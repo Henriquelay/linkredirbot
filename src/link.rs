@@ -40,7 +40,7 @@ impl Link {
                 Some(url)
             }
             Self::Instagram(mut url) => {
-                url.set_host(Some("ddinstagram.com")).unwrap();
+                url.set_host(Some("kkinstagram.com")).unwrap();
                 url.set_query(None);
                 Some(url)
             }
