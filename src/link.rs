@@ -24,7 +24,7 @@ impl From<Url> for Link {
         match host.as_deref() {
             Some("twitter.com" | "x.com" | "www.twitter.com" | "www.x.com") => Self::X(value),
             Some("instagram.com" | "www.instagram.com") => Self::Instagram(value),
-            Some("tiktok.com" | "www.tiktok.com" | "vm.tiktok.com") => Self::TikTok(value),
+            Some("tiktok.com" | "www.tiktok.com" | "vm.tiktok.com" | "vt.tiktok.com") => Self::TikTok(value),
             _ => Self::Unsupported,
         }
     }
