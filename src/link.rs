@@ -24,7 +24,9 @@ impl From<Url> for Link {
         match host.as_deref() {
             Some("twitter.com" | "x.com" | "www.twitter.com" | "www.x.com") => Self::X(value),
             Some("instagram.com" | "www.instagram.com") => Self::Instagram(value),
-            Some("tiktok.com" | "www.tiktok.com" | "vm.tiktok.com" | "vt.tiktok.com") => Self::TikTok(value),
+            Some("tiktok.com" | "www.tiktok.com" | "vm.tiktok.com" | "vt.tiktok.com") => {
+                Self::TikTok(value)
+            }
             _ => Self::Unsupported,
         }
     }
@@ -40,7 +42,7 @@ impl Link {
                 Some(url)
             }
             Self::Instagram(mut url) => {
-                url.set_host(Some("zzinstagram.com")).unwrap();
+                url.set_host(Some("oginstagram.com")).unwrap();
                 url.set_query(None);
                 Some(url)
             }
@@ -58,8 +60,11 @@ impl Link {
 pub fn map_links(msg: &Message) -> Vec<String> {
     let links = links_from_msg(msg);
     if !links.is_empty() {
-        let user = msg.from().map_or(&None, |user| &user.username);
-        println!("New message: {user:?}: {:?}", msg.text());
+        println!(
+            "New message: {user:?}: `{text:?}`",
+            user = msg.from,
+            text = msg.text()
+        );
     }
 
     links

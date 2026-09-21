@@ -1,87 +1,76 @@
-# from https://github.com/cpu/rust-flake
-
 {
+  # from https://nixos.wiki/wiki/Rust#Installation_via_rustup
+  description = "Rust development environment";
+
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
-    inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" ];
-      perSystem =
-        {
-          config,
-          self',
-          pkgs,
-          lib,
-          system,
-          ...
-        }:
-        let
-          # Package dependencies
-          runtimeDeps = with pkgs; [ ];
-          buildDeps = with pkgs; [
-            # pkg-config # used with -sys crates
-            rustPlatform.bindgenHook
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        # Read the file relative to the flake's root
+        overrides = (builtins.fromTOML (builtins.readFile (self + "/rust-toolchain.toml")));
+        libPath =
+          with pkgs;
+          lib.makeLibraryPath [
+            # load external libraries that you need in your rust project here
           ];
-          devDeps = with pkgs; [
-            gdb
-            rust-analyzer
-            taplo # TOML toolkit
-            cargo-nextest # cool test runner
+      in
+      {
+        devShells.default = pkgs.mkShell rec {
+          nativeBuildInputs = [ pkgs.pkg-config ];
+          buildInputs = with pkgs; [
+            clang
+            llvmPackages.bintools
+            rustup
+            bacon
+            cargo-flamegraph
+            cargo-nextest
+            cargo-lambda
           ];
 
-          cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-          msrv = cargoToml.package.rust-version;
+          RUSTC_VERSION = overrides.toolchain.channel;
 
-          rustPackage =
-            features:
-            (pkgs.makeRustPlatform {
-              cargo = pkgs.rust-bin.stable.latest.minimal;
-              rustc = pkgs.rust-bin.stable.latest.minimal;
-            }).buildRustPackage
-              {
-                inherit (cargoToml.package) name version;
-                src = ./.;
-                cargoLock.lockFile = ./Cargo.lock;
-                buildFeatures = features;
-                buildInputs = runtimeDeps;
-                nativeBuildInputs = buildDeps;
-                # Uncomment if cargo tests require networking or otherwise
-                # don't play nicely with the Nix build sandbox:
-                # doCheck = false;
-              };
+          # https://github.com/rust-lang/rust-bindgen#environment-variables
+          LIBCLANG_PATH = pkgs.lib.makeLibraryPath [ pkgs.llvmPackages_latest.libclang.lib ];
 
-          mkDevShell =
-            rustc:
-            pkgs.mkShell {
-              shellHook = ''
-                export RUST_SRC_PATH=${pkgs.rustPlatform.rustLibSrc}
-              '';
-              buildInputs = runtimeDeps;
-              nativeBuildInputs = buildDeps ++ devDeps ++ [ rustc ];
-            };
-        in
-        {
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = [ (import inputs.rust-overlay) ];
-          };
+          shellHook = ''
+            export PATH=$PATH:''${CARGO_HOME:-~/.cargo}/bin
+            export PATH=$PATH:''${RUSTUP_HOME:-~/.rustup}/toolchains/$RUSTC_VERSION-x86_64-unknown-linux-gnu/bin/
+          '';
 
-          packages.default = self'.packages.linkredirbot;
-          devShells.default = self'.devShells.stable;
-
-          # No features used so far
-          packages.linkredirbot = (rustPackage "");
-
-          devShells.nightly = (
-            mkDevShell (pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
+          # Add precompiled library to rustc search path
+          RUSTFLAGS = (
+            builtins.map (a: "-L ${a}/lib") [
+              # add libraries here (e.g. pkgs.libvmi)
+            ]
           );
-          devShells.stable = (mkDevShell pkgs.rust-bin.stable.latest.default);
-          devShells.msrv = (mkDevShell pkgs.rust-bin.stable.${msrv}.default);
+
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (buildInputs ++ nativeBuildInputs);
+
+          # Add glibc, clang, glib, and other headers to bindgen search path
+          BINDGEN_EXTRA_CLANG_ARGS =
+            # Includes normal include path
+            (builtins.map (a: ''-I"${a}/include"'') [
+              # add dev libraries here (e.g. pkgs.libvmi.dev)
+              pkgs.glibc.dev
+            ])
+            # Includes with special directory paths
+            ++ [
+              ''-I"${pkgs.llvmPackages_latest.libclang.lib}/lib/clang/${pkgs.llvmPackages_latest.libclang.version}/include"''
+              ''-I"${pkgs.glib.dev}/include/glib-2.0"''
+              "-I${pkgs.glib.out}/lib/glib-2.0/include/"
+            ];
         };
-    };
+      }
+    );
 }

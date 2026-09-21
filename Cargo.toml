@@ -1,7 +1,7 @@
 [package]
 name = "linkredirbot"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "A simple bot that replies to links with another better alternative for it"
 license = "The Unlicense"
 repository = "https://github.com/Henriquelay/linkredirbot"
@@ -12,10 +12,10 @@ categories = ["chatbot"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-teloxide = { version = "0.12", features = [
+teloxide = { version = "0.17.0", features = [
   "rustls",
   "ctrlc_handler",
 ], default-features = false }
-tokio = { version = "1.8", features = ["rt-multi-thread", "macros"] }
-futures = "0.3.28"
-url = "2.4.1"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"] }
+futures = "0.3.34"
+url = "2.5.8"

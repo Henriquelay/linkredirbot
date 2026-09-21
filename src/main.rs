@@ -10,7 +10,10 @@
 #![deny(missing_doc_code_examples)]
 
 use futures::future::try_join_all;
-use teloxide::prelude::*;
+use teloxide::{
+    prelude::*,
+    types::{LinkPreviewOptions, ReplyParameters},
+};
 
 mod link;
 
@@ -21,9 +24,15 @@ async fn main() {
     teloxide::repl(bot, |bot: Bot, msg: Message| async move {
         let new_links = link::map_links(&msg);
         let handles = new_links.into_iter().map(|new_link| async {
-            bot.send_message(msg.chat.id, new_link)
-                .allow_sending_without_reply(false)
-                .reply_to_message_id(msg.id)
+            bot.send_message(msg.chat.id, &new_link)
+                .link_preview_options(LinkPreviewOptions {
+                    is_disabled: false,
+                    url: Some(new_link),
+                    prefer_small_media: false,
+                    prefer_large_media: true,
+                    show_above_text: true,
+                })
+                .reply_parameters(ReplyParameters::new(msg.id))
                 .await
         });
         try_join_all(handles).await?;
